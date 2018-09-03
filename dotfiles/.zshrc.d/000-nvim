@@ -7,4 +7,7 @@ fi;
 export LESS=FRX
 spaceship_vi_mode_enable
 ZGEN_RESET_ON_CHANGE=(${HOME}/.zshrc ${HOME}/.zgen-local-plugins ${HOME}/.zshrc.d/*)
-#unset QUICKSTART_KIT_REFRESH_IN_DAYS
+
+# fpath=(/usr/local/share/zsh-completions $fpath)
+# chmod go-w '/usr/local/share'
+# unset QUICKSTART_KIT_REFRESH_IN_DAYS
