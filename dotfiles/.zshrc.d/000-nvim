@@ -1,0 +1,10 @@
+#!/bin/zsh
+if type nvim> /dev/null 2>&1; then
+  alias vi=nvim
+  alias vim=nvim
+  export EDITOR=nvim
+fi;
+export LESS=FRX
+spaceship_vi_mode_enable
+ZGEN_RESET_ON_CHANGE=(${HOME}/.zshrc ${HOME}/.zgen-local-plugins ${HOME}/.zshrc.d/*)
+#unset QUICKSTART_KIT_REFRESH_IN_DAYS
