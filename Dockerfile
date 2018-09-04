@@ -3,21 +3,20 @@ ARG GIT_USER_EMAIL
 ARG HTTP_PROXY
 FROM node:carbon-alpine as node
 
-ENV GIT_USER_NAME=${GIT_USER_NAME:-"Ashish Gupta"}
-ENV GIT_USER_EMAIL=${GIT_USER_EMAIL:-"gotoashishgupta@gmail.com"}
-ENV HTTP_PROXY=${HTTP_PROXY}
+ENV GIT_USER_NAME=${GIT_USER_NAME:-"Ashish Gupta"} \
+    GIT_USER_EMAIL=${GIT_USER_EMAIL:-"gotoashishgupta@gmail.com"} \
+    HTTP_PROXY=${HTTP_PROXY} \
+    # ensure local is preferred over distribution + node modules bin
+    PATH=/usr/local/bin:/node_modules/.bin:$PATH \
+    # Generally a good idea to have these, extensions sometimes need them
+    LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8 \
+    COLORTERM=truecolor \
+    TERM=xterm-256color \
+    PYTHONIOENCODING=UTF-8
 
 LABEL AUTHOR="${GIT_USER_NAME} <${GIT_USER_EMAIL}>"
-
-# ensure local is preferred over distribution + node modules bin
-ENV PATH /usr/local/bin:/node_modules/.bin:$PATH
-# Generally a good idea to have these, extensions sometimes need them
-ENV LANG=en_US.UTF-8
-ENV LANGUAGE=en_US:en
-ENV LC_ALL=en_US.UTF-8
-ENV COLORTERM=truecolor
-ENV TERM=xterm-256color
-ENV PYTHONIOENCODING=UTF-8
 
 # Set yarn proxy
 RUN set -eux; \
@@ -32,28 +31,26 @@ RUN set -eux; \
   fi;
 
 
-RUN set -ex; \
-  cp /etc/apk/repositories /etc/apk/repositories.bck; \
-  # add testing channel to repo
-  sed -ie '$p$s/community/testing/g;' /etc/apk/repositories; \
-  # add edge and dl-4 mirror
-  #         # this sed pattern causes all matches
-  #         # to go into match pattern space
-  sed -i -e '/cdn/{1h;1!H;$!d};xh;' \
-    -e 'p;/cdn/s/v[^\/]\+/edge/g;' \
+# RUN set -ex; \
+#   cp /etc/apk/repositories /etc/apk/repositories.bck; \
+#   # add testing channel to repo
+#   sed -ie '$p$s/community/testing/g;' /etc/apk/repositories; \
+#   # add edge and dl-4 mirror
+#   #         # this sed pattern causes all matches
+#   #         # to go into match pattern space
+#   sed -i -e '/cdn/{1h;1!H;$!d};xh;' \
+#     -e 'p;/cdn/s/v[^\/]\+/edge/g;' \
 #     -e 'p;/cdn/ s//4/g;' \
 #     -e 'p;/dl-4/ s/dl-4\.alpinelinux\.org/uk.alpinelinux.org/g;' \
 #     -e 'p;/uk/ s//dl-2/g;' \
 #     -e 'p;/dl-2/ s//dl-5/g;' \
-    /etc/apk/repositories; \
-  # delete v3.6/testing
-  sed -i -e '/v[^\/]\+\/testing/d' /etc/apk/repositories;
+#    /etc/apk/repositories; \
+#   # delete v3.6/testing
+#   sed -i -e '/v[^\/]\+\/testing/d' /etc/apk/repositories;
 
-RUN apk update
-RUN apk add --no-cache -t .build-deps build-base fontconfig mkfontdir mkfontscale python-dev python3-dev
-RUN apk add --no-cache -t .core ca-certificates python3 py-pip python git neovim openssl openssh perl stow tree zsh zsh-vcs bash dumb-init curl
-# RUN apk add --no-cache cmake
-# RUN apk add --no-cache ctags
+RUN apk update; \
+    apk add --no-cache -t .build-deps build-base fontconfig mkfontdir mkfontscale python-dev python3-dev; \
+    apk add --no-cache -t .core ca-certificates python3 py-pip python git neovim openssl openssh perl stow tree zsh zsh-vcs bash dumb-init curl
 
 # generate ssh keys
 RUN set -eux; \
@@ -108,9 +105,10 @@ RUN set -eux; \
   echo 'Zsh installed and configured';
 
 # Install spacevim
-RUN pip install --user neovim pipenv
 ENV PATH /root/.local/bin:$PATH
-RUN curl -sLf https://spacevim.org/install.sh | bash
-RUN nvim --headless +'call dein#install()' +qall
-RUN sed -i -e 's/\x27/"/g;' -e '/statusline_\(inactive_\)\?separator/ s/"[^"]\+"/"nil"/g;' ${HOME}/.SpaceVim.d/init.toml
-RUN apk del .build-deps
+RUN set -eux; \
+    pip install --user neovim pipenv; \
+    curl -sLf https://spacevim.org/install.sh | bash; \
+    nvim --headless +'call dein#install()' +qall; \
+    sed -i -e 's/\x27/"/g;' -e '/statusline_\(inactive_\)\?separator/ s/"[^"]\+"/"nil"/g;' ${HOME}/.SpaceVim.d/init.toml; \
+    apk del .build-deps
