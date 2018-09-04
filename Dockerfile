@@ -30,6 +30,8 @@ RUN set -eux; \
     yarn config set worspace-experimental true ;\
   fi;
 
+FROM node as dev
+
 
 # RUN set -ex; \
 #   cp /etc/apk/repositories /etc/apk/repositories.bck; \
@@ -110,5 +112,7 @@ RUN set -eux; \
     pip install --user neovim pipenv; \
     curl -sLf https://spacevim.org/install.sh | bash; \
     nvim --headless +'call dein#install()' +qall; \
-    sed -i -e 's/\x27/"/g;' -e '/statusline_\(inactive_\)\?separator/ s/"[^"]\+"/"nil"/g;' ${HOME}/.SpaceVim.d/init.toml; \
-    apk del .build-deps
+    sed -i -e 's/\x27/"/g;' -e '/statusline_\(inactive_\)\?separator/ s/"[^"]\+"/"nil"/g;' ${HOME}/.SpaceVim.d/init.toml;
+
+FROM dev as prod
+RUN apk del .build-deps
