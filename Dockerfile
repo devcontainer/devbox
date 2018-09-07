@@ -104,3 +104,5 @@ RUN set -eux; \
 
 FROM node as prod
 RUN apk del .build-deps
+
+RUN yarn global add typescript parcel-bundler gulp bower neovim ts-node jest ts-jest tern
