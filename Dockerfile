@@ -102,5 +102,11 @@ RUN set -eux; \
   nvim --headless +'call dein#install()' +qall; \
   sed -i -e 's/\x27/"/g;' -e '/statusline_\(inactive_\)\?separator/ s/"[^"]\+"/"nil"/g;' ${HOME}/.SpaceVim.d/init.toml;
 
+# Install saws
+RUN set -eux; \
+  pip install --user saws;
+
+
+
 FROM node as prod
 RUN apk del .build-deps
