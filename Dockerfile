@@ -1,56 +1,112 @@
 ARG GIT_USER_NAME
 ARG GIT_USER_EMAIL
 ARG HTTP_PROXY
-FROM node:carbon-alpine as node
+ARG GOPATH
+ARG JAVA_HOME
+ARG MAVEN_HOME
+ARG MAVEN_CONFIG
+FROM amazonlinux:2 as build
 
-ENV GIT_USER_NAME=${GIT_USER_NAME:-"Ashish Gupta"} \
-  GIT_USER_EMAIL=${GIT_USER_EMAIL:-"gotoashishgupta@gmail.com"} \
-  HTTP_PROXY=${HTTP_PROXY} \
-  # ensure local is preferred over distribution + node modules bin
-  PATH=/usr/local/bin:/node_modules/.bin:$PATH \
-  # Generally a good idea to have these, extensions sometimes need them
-  LANG=en_US.UTF-8 \
+# Generally a good idea to have these, extensions sometimes need them
+ENV LANG=en_US.UTF-8 \
   LANGUAGE=en_US:en \
   LC_ALL=en_US.UTF-8 \
   COLORTERM=truecolor \
   TERM=xterm-256color \
-  PYTHONIOENCODING=UTF-8
+  PYTHONIOENCODING=UTF-8 \
+  GIT_USER_NAME=${GIT_USER_NAME:-"Ashish Gupta"} \
+  GIT_USER_EMAIL=${GIT_USER_EMAIL:-"gotoashishgupta@gmail.com"} \
+  PATH=/root/.local/bin:/usr/local/bin:/node_modules/.bin:$PATH
 
 LABEL AUTHOR="${GIT_USER_NAME} <${GIT_USER_EMAIL}>"
 
-# yarn proxy is set in ~/.bash_extras
+# Amazon default repo.list pacakges
+RUN yum update -y; \
+  # Install build packages
+  yum install -y fontconfig mkfontdir; \
+  # Install required packages
+  yum install -y python-pip python3-pip wget git openssl tree zsh; \
+  # Install dumb-init
+  wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_amd64; \
+  chmod +x /usr/local/bin/dumb-init; \
+  # clean yum packages
+  yum clean all; \
+  rm -rf /var/cache/yum;
 
-# RUN set -ex; \
-#   cp /etc/apk/repositories /etc/apk/repositories.bck; \
-#   # add testing channel to repo
-#   sed -ie '$p$s/community/testing/g;' /etc/apk/repositories; \
-#   # add edge and dl-4 mirror
-#   #         # this sed pattern causes all matches
-#   #         # to go into match pattern space
-#   sed -i -e '/cdn/{1h;1!H;$!d};xh;' \
-#     -e 'p;/cdn/s/v[^\/]\+/edge/g;' \
-#     -e 'p;/cdn/ s//4/g;' \
-#     -e 'p;/dl-4/ s/dl-4\.alpinelinux\.org/uk.alpinelinux.org/g;' \
-#     -e 'p;/uk/ s//dl-2/g;' \
-#     -e 'p;/dl-2/ s//dl-5/g;' \
-#    /etc/apk/repositories; \
-#   # delete v3.6/testing
-#   sed -i -e '/v[^\/]\+\/testing/d' /etc/apk/repositories;
-
-RUN apk update; \
-  apk add --no-cache -t .build-deps build-base fontconfig mkfontdir mkfontscale python-dev python3-dev; \
-  apk add --no-cache -t .core ca-certificates python3 py-pip python git neovim openssl openssh perl stow tree zsh zsh-vcs bash dumb-init curl
+# Packages from epel registry
+RUN set -eux; \
+  yum groupinstall -y "Development Tools"; \
+  # stow and neovim are epel pacakges
+  wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm; \
+  yum install -y ./epel-release-latest-7.noarch.rpm neovim; \
+  rm ./epel-release-latest-7.noarch.rpm; \
+  # clean yum packages
+  yum clean all; \
+  rm -rf /var/cache/yum;
 
 # generate ssh keys
 RUN set -eux; \
   ssh-keygen -q -t rsa -b 4096 -C ${GIT_USER_EMAIL} -N '' -f "${HOME}/.ssh/id_rsa"; \
   cp "${HOME}/.ssh/id_rsa.pub" "${HOME}/.ssh/authorized_keys"; \
-  for key in /etc/ssh/ssh_host_*_key.pub; do \ 
+  for key in /etc/ssh/ssh_host_*key.pub; do \ 
   echo "localhost $(cat ${key})" >> "${HOME}/.ssh/known_hosts";\
   done; \
   eval "$(ssh-agent -s)"; \
   ssh-add "${HOME}/.ssh/id_rsa"
 
+# So that all process that we start are child of dumb-init
+ENTRYPOINT [ "dumb-init", "--" ]
+CMD ["zsh", "--"]
+
+
+#============ Install SAWS for awscli ============#
+# Install saws for awscli
+RUN set -eux; \
+  pip3 install --user saws;
+#============ ./Install SAWS for awscli ==========#
+
+
+#============ Install Java, Maven, SpringBoot ============#
+ENV JAVA_HOME=${JAVA_HOME:-/usr/lib/jvm/java} \
+  MAVEN_HOME=${MAVEN_HOME:-/usr/share/maven} \
+  MAVEN_CONFIG=${MAVEN_CONFIG:-/root/.m2} \
+  APP_TARGET=${APP_TARGET:-target} \
+  JAVA_OPTS=${JAVA_OPTS:-}
+RUN set -eux; \
+  yum install -y maven; \
+  yum clean all; \
+  rm -rf /var/cache/yum;
+#============ ./Install Java, Maven, SpringBoot ==========#
+
+
+#============ Install Golang ============#
+ENV GOPATH=${GOPATH:-/go}
+RUN set -eux; \
+  mkdir -p ${GOPATH}; \
+  chmod -R 777 ${GOPATH}; \
+  yum -y install golang; \
+  yum clean all; \
+  rm -rf /var/cache/yum;
+#============ ./Install Golang ==========#
+
+
+#============ Install Javascript, Typescript ============#
+# Install node and yarn
+RUN set -eux; \
+  curl --silent --location https://rpm.nodesource.com/setup_8.x | bash -; \
+  yum install -y nodejs; \
+  curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo; \
+  yum install -y yarn; \
+  yum clean all; \
+  rm -rf /var/cache/yum;
+
+RUN set -eux; \
+  # Install yarn packages
+  yarn global add typescript parcel-bundler gulp bower neovim ts-node jest ts-jest tern;
+#============ ./Install Javascript, Typescript ==========#
+
+
+#============ ZSH Config ============#
 # Install powerline fonts
 RUN set -eux; \
   git clone https://github.com/powerline/fonts.git --depth=1 "${HOME}/fonts"; \
@@ -60,7 +116,7 @@ RUN set -eux; \
 # Install zsh
 COPY . /root/.dotfiles/devbox
 RUN set -eux; \
-  eval $(ssh-agent -s) \
+  yum install -y stow; \
   git clone https://github.com/tarjoilija/zgen.git "${HOME}/zgen"; \
   sed -i -e '/shasum -a 256/ s//sha256sum/g' ${HOME}/zgen/zgen.zsh; \
   mkdir -p "${HOME}/.dotfiles/zsh-quickstart-kit"; \
@@ -75,11 +131,12 @@ RUN set -eux; \
   fi;\n\
   [ -f ~/.bash_profile ] && source ~/.bash_profile;\n\
   [ -f ~/.bash_extras ] && source ~/.bash_extras;\n\
-  [ -f ~/.bashrc ] && source ~/.bashrc;\n\
+  [ -f ~/.bashrc ] && source ~/.basrc;\n\
   export fpath=(/usr/local/share/zsh-completions $fpath)\n\
   # load zgen\n\
   source "${HOME}/zgen/zgen.zsh"\n\
   ' ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
+  echo "export PATH=$PATH:\$PATH" >> ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
   # symlink your local plugins
   cd "${HOME}/.dotfiles/devbox"; \
   stow --target="${HOME}" dotfiles; \
@@ -89,26 +146,25 @@ RUN set -eux; \
   # install zsh zgen packages
   /bin/zsh -c " \
   source ~/.zshrc; \
-  zgen selfupdate; \
-  zgen update; \
   zgen save;" \
-  echo 'Zsh installed and configured';
+  echo 'Zsh installed and configured'; \
+  # Remove package Stow not required anymore
+  yum erase -y stow; \
+  yum clean all; \
+  rm -rf /var/cache/yum;
+#============ ./ZSH Config ==========#
 
+
+#============ Install Spacevim ============#
 # Install spacevim
-ENV PATH /root/.local/bin:$PATH
 RUN set -eux; \
+  yum install -y neovim; \
   pip install --user neovim pipenv; \
+  pip3 install --user neovim pipenv; \
   curl -sLf https://spacevim.org/install.sh | bash; \
   nvim --headless +'call dein#install()' +qall; \
-  sed -i -e 's/\x27/"/g;' -e '/statusline_\(inactive_\)\?separator/ s/"[^"]\+"/"nil"/g;' ${HOME}/.SpaceVim.d/init.toml;
-
-# Install saws
-RUN set -eux; \
-  pip install --user saws;
-
-
-
-FROM node as prod
-RUN apk del .build-deps
-
-RUN yarn global add typescript parcel-bundler gulp bower neovim ts-node jest ts-jest tern
+  # ${HOME}/.SpaceVim.d/init.toml is coming from above zsh stow after "COPY . /root/.dotfiles/devbox" statement
+  sed -i -e 's/\x27/"/g;' -e '/statusline_\(inactive_\)\?separator/ s/"[^"]\+"/"nil"/g;' ${HOME}/.SpaceVim.d/init.toml; \
+  yum clean all; \
+  rm -rf /var/cache/yum;
+#============ ./Install Spacevim ==========#
