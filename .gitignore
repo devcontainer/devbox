@@ -59,3 +59,7 @@ typings/
 
 # next.js build output
 .next
+
+# specific files
+dotfiles/.SpaceVim.d/.netrwhist
+.DS_Store
