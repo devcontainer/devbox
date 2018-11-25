@@ -1,0 +1,58 @@
+#!/bin/bash
+export PYTHONIOENCODING=UTF-8
+function setproxy() {
+    local PROXY=("${HTTP_PROXY}" "http://sjc1intproxy01.crd.ge.com:8080" "http://PITC-Zscaler-ASPAC-Bangalore3PR.proxy.corporate.ge.com:80" "http://proxy-src.research.ge.com:8080")
+    for ix in ${PROXY}; do
+      echo "Setting Proxy...";
+      # sed regex provides protocol,user,password,host,port
+      local hostport=$(echo "${ix}" | sed -e 's/^\(\([^/]\+\):\/\/\)\?\(\([^@:]\+\)\(:\([^@]\+\)\)\?@\)\?\(\([^\/]\+\)\(:[0-9]\+\)\)\/\?.*$/\2,\4,\6,\8\9/g' | tr ':' ','| awk -F',' '{print $4" "$5 }' )
+      local pHost=$(echo $hostport | cut -d' ' -f1)
+      local pPort=$(echo $hostport | cut -d' ' -f2)
+      if nc -vz $pHost $pPort &>/dev/null; then
+        export {http,https,ftp,rsync}_proxy=${ix}
+        export {HTTP,HTTPS,FTP,RSYNC}_PROXY=${ix}
+        #minikubeIp = $(minikube ip 2&>1 || '' )
+        #echo "Minikube Ip ${minikubeIp}"
+        export {NO_PROXY,no_proxy}="*.docker.io, 127.0.0.1, localhost, *.local, *.predix.io, 169.254/16, *.ge.com:8080, *.ge.com, *.openge.com, *.zeplin.io, *.zpl.io, *.github.com"
+
+
+        export {SBT,JAVA}_OPTS="-Dhttp.proxyHost=${pHost} -Dhttp.proxyPort=${pPort}"
+        export NODE_TLS_REJECT_UNAUTHORIZED=0
+
+        if type npm >/dev/null 2>&1; then
+          npm config set proxy ${ix}
+          npm config set https-proxy ${ix}
+          npm config set http-proxy ${ix}
+        fi
+        if type yarn >/dev/null 2>&1; then
+          yarn config set proxy ${HTTP_PROXY} >/dev/null 2>&1;
+          yarn config set https-proxy ${HTTP_PROXY} >/dev/null 2>&1;
+          yarn config set strict-ssl false >/dev/null 2>&1;
+          yarn config set worspace-experimental true;
+        fi
+        echo "Using Proxy: ${ix}";
+        return 0;
+      fi;
+    done;
+    echo "No Proxy set. Proxy server not available."
+    unsetproxy;
+    return 1;
+}
+function unsetproxy() {
+    echo "Disabling Proxy"
+    unset {http,https,ftp,rsync,no}_proxy
+    unset {HTTP,HTTPS,FTP,RSYNC,NO}_PROXY
+    unset {SBT,JAVA}_OPTS
+    unset NODE_TLS_REJECT_UNAUTHORIZED
+    if type npm >/dev/null 2>&1; then
+      npm config delete proxy
+      npm config delete http-proxy
+      npm config delete https-proxy
+    fi
+    if type yarn >/dev/null 2>&1; then
+      yarn config delete proxy
+      yarn config delete http-proxy
+      yarn config delete https-proxy
+    fi
+}
+setproxy

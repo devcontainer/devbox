@@ -1,0 +1,10 @@
+#!/bin/zsh
+function gconr () {
+  local branch=$([ $# -gt 1 ] && echo $1 || echo "HEAD")
+  local commitNumber=$([ $# -eq 0 ] && echo 1 || echo ${@:$#})
+  if [ ${commitNumber} -lt 0 ]; then
+    return $(git checkout $(git rev-list ${branch} | tail -n ${commitNumber#-} | head -n 1))
+  else
+    return $(git checkout $(git rev-list ${branch} | head -n ${commitNumber#-} | tail -n 1))
+  fi;
+}
