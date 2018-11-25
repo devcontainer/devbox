@@ -1,10 +1,15 @@
-#!/bin/zsh
+#!/bin/bash
 if type nvim> /dev/null 2>&1; then
   alias vi=nvim
   alias vim=nvim
   export EDITOR=nvim
 fi;
 export LESS=FRX
+
+if type docker >/dev/null 2>&1; then
+  alias containers='docker container ls -a --format="table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Status}}"'
+fi;
+
 spaceship_vi_mode_enable
 ZGEN_RESET_ON_CHANGE=(${HOME}/.zshrc ${HOME}/.zgen-local-plugins ${HOME}/.zshrc.d/*)
 
