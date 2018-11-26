@@ -62,7 +62,7 @@ CMD ["zsh", "--"]
 #============ Install SAWS for awscli ============#
 # Install saws for awscli
 RUN set -eux; \
-  pip3 install --user saws;
+  pip3 install --user saws boto3;
 #============ ./Install SAWS for awscli ==========#
 
 
