@@ -24,7 +24,7 @@ RUN yum update -y; \
   # Install build packages
   yum install -y fontconfig mkfontdir; \
   # Install required packages
-  yum install -y python-pip python3-pip wget git openssl tree zsh; \
+  yum install -y python-pip python3-pip wget git openssl tree zsh nc; \
   amazon-linux-extras install -y docker; \
   # Install dumb-init
   wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_amd64; \
@@ -38,7 +38,7 @@ RUN set -eux; \
   yum groupinstall -y "Development Tools"; \
   # stow and neovim are epel pacakges
   wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm; \
-  yum install -y ./epel-release-latest-7.noarch.rpm neovim; \
+  yum install -y ./epel-release-latest-7.noarch.rpm neovim jq; \
   rm ./epel-release-latest-7.noarch.rpm; \
   # clean yum packages
   yum clean all; \
@@ -62,7 +62,7 @@ CMD ["zsh", "--"]
 #============ Install SAWS for awscli ============#
 # Install saws for awscli
 RUN set -eux; \
-  pip3 install --user saws;
+  pip3 install --user saws boto3 yq;
 #============ ./Install SAWS for awscli ==========#
 
 
