@@ -56,6 +56,7 @@ typings/
 
 # dotenv environment variables file
 .env
+*.private.env
 
 # next.js build output
 .next
@@ -63,3 +64,6 @@ typings/
 # specific files
 dotfiles/.SpaceVim.d/.netrwhist
 .DS_Store
+
+# aws env
+**/.aws

@@ -5,7 +5,6 @@ if type nvim> /dev/null 2>&1; then
   export EDITOR=nvim
 fi;
 export LESS=FRX
-spaceship_vi_mode_enable
 ZGEN_RESET_ON_CHANGE=(${HOME}/.zshrc ${HOME}/.zgen-local-plugins ${HOME}/.zshrc.d/*)
 
 # fpath=(/usr/local/share/zsh-completions $fpath)

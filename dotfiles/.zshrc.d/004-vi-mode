@@ -1,0 +1,22 @@
+#!/bin/zsh
+function set_vi_mode() {
+  if type spaceship_vi_mode_enable > /dev/null 2>&1; then;
+    echo "Enabling shell in vi mode...";
+    echo "To disable shell vi mode... execute:"
+    echo "          unset_vi_mode"
+    spaceship_vi_mode_enable;
+  fi;
+}
+
+function unset_vi_mode() {
+  if type spaceship_vi_mode_disable > /dev/null 2>&1; then;
+    echo "Disabling shell vi mode..."
+    spaceship_vi_mode_disable;
+  fi;
+}
+
+if [ $# -eq 0 ]; then
+set_vi_mode;
+fi;
+
+"$@"
