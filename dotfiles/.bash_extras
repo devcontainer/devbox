@@ -39,7 +39,7 @@ function set_proxy() {
       fi;
     done;
     echo "No Proxy set. Proxy server not available."
-    unsetproxy;
+    unset_proxy;
     return 1;
 }
 
