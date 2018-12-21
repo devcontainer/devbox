@@ -15,9 +15,13 @@ ENV LANG=en_US.UTF-8 \
   PYTHONIOENCODING=UTF-8 \
   GIT_USER_NAME=${GIT_USER_NAME:-"Ashish Gupta"} \
   GIT_USER_EMAIL=${GIT_USER_EMAIL:-"gotoashishgupta@gmail.com"} \
-  PATH=/root/.local/bin:/usr/local/bin:/node_modules/.bin:$PATH
+  PATH=/root/.local/bin:/usr/local/bin:/node_modules/.bin:$PATH \
+  EDITOR=nvim \
+  VISUAL=nvim
 
 LABEL AUTHOR="${GIT_USER_NAME} <${GIT_USER_EMAIL}>"
+
+WORKDIR ${HOME}
 
 # Amazon default repo.list pacakges
 RUN yum update -y; \
@@ -62,7 +66,12 @@ CMD ["zsh", "--"]
 #============ Install SAWS for awscli ============#
 # Install saws for awscli
 RUN set -eux; \
-  pip3 install --user saws boto3 yq;
+  pip3 install --user --upgrade saws boto3 yq awsebcli; \
+  curl https://raw.githubusercontent.com/wallix/awless/master/getawless.sh | bash; \
+  mv awless /usr/local/bin/; \
+  echo 'source <(awless completion zsh)' >> ~/.bash_profile; \
+  curl -o /usr/local/bin/ecs-cli https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest; \
+  chmod +x /usr/local/bin/ecs-cli;
 #============ ./Install SAWS for awscli ==========#
 
 
