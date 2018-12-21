@@ -21,8 +21,6 @@ ENV LANG=en_US.UTF-8 \
 
 LABEL AUTHOR="${GIT_USER_NAME} <${GIT_USER_EMAIL}>"
 
-WORKDIR ${HOME}
-
 # Amazon default repo.list pacakges
 RUN yum update -y; \
   # Install build packages
