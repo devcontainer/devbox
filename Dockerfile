@@ -65,6 +65,7 @@ CMD ["zsh", "--"]
 # Install saws for awscli
 RUN set -eux; \
   pip3 install --user --upgrade saws boto3 yq awsebcli; \
+  pip install --user --upgrade saws boto3 yq awsebcli; \
   curl https://raw.githubusercontent.com/wallix/awless/master/getawless.sh | bash; \
   mv awless /usr/local/bin/; \
   echo 'source <(awless completion zsh)' >> ~/.bash_profile; \
