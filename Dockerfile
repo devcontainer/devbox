@@ -55,16 +55,7 @@ RUN set -eux;
   cd /home/developer/.linuxbrew; \
   mkdir -p bin etc include lib opt sbin share var/homebrew/linked Cellar; \
   ln -s ../Homebrew/bin/brew /home/developer/.linuxbrew/bin/; \
-  chown -R developer: /home/developer/.linuxbrew; \
-  cd -; \
-  # Install linuxbrew
-  mkdir -p /home/linuxbrew/.linuxbrew; \
-  mkdir -p ${HOME}/.linuxbrew; \
-  git clone https://github.com/Homebrew/brew /home/linuxbrew/.linuxbrew/Homebrew; \
-  mkdir -p /home/linuxbrew/.linuxbrew/bin; \
-  ln -s /home/linuxbrew/.linuxbrew/Homebrew/bin/brew /home/linuxbrew/.linuxbrew/bin; \
-  ln -s /home/linuxbrew/.linuxbrew/Homebrew/bin/brew ${HOME}/.linuxbrew/bin; \
-  eval $(~/.linuxbrew/bin/brew shellenv); \
+  chown -R developer: /home/developer/.linuxbrew;
 
 USER developer
 WORKDIR /home/developer
