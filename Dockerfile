@@ -31,6 +31,14 @@ RUN yum update -y; \
   # Install dumb-init
   wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_amd64; \
   chmod +x /usr/local/bin/dumb-init; \
+  # Homebrew install
+  sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"; \
+  test -d ~/.linuxbrew && eval $(~/.linuxbrew/bin/brew shellenv); \
+  test -d /home/linuxbrew/.linuxbrew && eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv); \
+  test -r ~/.bash_profile && echo "eval \$($(brew --prefix)/bin/brew shellenv)" >>~/.bash_profile; \
+  echo "eval \$($(brew --prefix)/bin/brew shellenv)" >>~/.profile; \
+  # Install yq
+  brew install yq; \
   # clean yum packages
   yum clean all; \
   rm -rf /var/cache/yum;
@@ -64,8 +72,7 @@ CMD ["zsh", "--"]
 #============ Install SAWS for awscli ============#
 # Install saws for awscli
 RUN set -eux; \
-  pip3 install --user --upgrade saws boto3 yq awsebcli; \
-  pip install --user --upgrade saws boto3 yq awsebcli; \
+  pip install --user --upgrade saws boto3 awsebcli; \
   curl https://raw.githubusercontent.com/wallix/awless/master/getawless.sh | bash; \
   mv awless /usr/local/bin/; \
   echo 'source <(awless completion zsh)' >> ~/.bash_profile; \
