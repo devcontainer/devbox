@@ -26,7 +26,8 @@ RUN yum update -y; \
   # Install build packages
   yum install -y fontconfig mkfontdir; \
   # Install required packages
-  yum install -y python-pip python3-pip wget git openssl tree zsh nc; \
+  yum install -y python-pip python3-pip wget git openssl tree zsh nc ca-certificates; \
+  update-ca-trust force-enable; \
   amazon-linux-extras install -y docker; \
   # Install dumb-init
   wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_amd64; \
@@ -152,6 +153,7 @@ RUN set -eux; \
   source "${HOME}/zgen/zgen.zsh"\n\
   ' ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
   echo "export PATH=$PATH:\$PATH" >> ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
+  echo "unset QUICKSTART_KIT_REFRESH_IN_DAYS" >> ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
   # symlink your local plugins
   cd "${HOME}/.dotfiles/devbox"; \
   stow --target="${HOME}" dotfiles; \
