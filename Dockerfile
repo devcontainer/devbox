@@ -32,14 +32,6 @@ RUN yum update -y; \
   # Install dumb-init
   wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_amd64; \
   chmod +x /usr/local/bin/dumb-init; \
-  # Homebrew install
-  sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"; \
-  test -d ~/.linuxbrew && eval $(~/.linuxbrew/bin/brew shellenv); \
-  test -d /home/linuxbrew/.linuxbrew && eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv); \
-  test -r ~/.bash_profile && echo "eval \$($(brew --prefix)/bin/brew shellenv)" >>~/.bash_profile; \
-  echo "eval \$($(brew --prefix)/bin/brew shellenv)" >>~/.profile; \
-  # Install yq
-  brew install yq; \
   # clean yum packages
   yum clean all; \
   rm -rf /var/cache/yum;
@@ -49,12 +41,45 @@ RUN set -eux; \
   yum groupinstall -y "Development Tools"; \
   # stow and neovim are epel pacakges
   wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm; \
-  yum install -y ./epel-release-latest-7.noarch.rpm neovim jq; \
+  yum install -y ./epel-release-latest-7.noarch.rpm neovim jq file; \
   rm ./epel-release-latest-7.noarch.rpm; \
   # clean yum packages
   yum clean all; \
   rm -rf /var/cache/yum;
+  
+# Install Homebrew
+RUN useradd -m -s /bin/zsh developer; \
+  echo 'developer ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers;
+RUN set -eux;
+  git clone https://github.com/Homebrew/brew /home/developer/.linuxbrew/Homebrew; \
+  cd /home/developer/.linuxbrew; \
+  mkdir -p bin etc include lib opt sbin share var/homebrew/linked Cellar; \
+  ln -s ../Homebrew/bin/brew /home/developer/.linuxbrew/bin/; \
+  chown -R developer: /home/developer/.linuxbrew; \
+  cd -; \
+  # Install linuxbrew
+  mkdir -p /home/linuxbrew/.linuxbrew; \
+  mkdir -p ${HOME}/.linuxbrew; \
+  git clone https://github.com/Homebrew/brew /home/linuxbrew/.linuxbrew/Homebrew; \
+  mkdir -p /home/linuxbrew/.linuxbrew/bin; \
+  ln -s /home/linuxbrew/.linuxbrew/Homebrew/bin/brew /home/linuxbrew/.linuxbrew/bin; \
+  ln -s /home/linuxbrew/.linuxbrew/Homebrew/bin/brew ${HOME}/.linuxbrew/bin; \
+  eval $(~/.linuxbrew/bin/brew shellenv); \
 
+USER developer
+WORKDIR /home/developer
+ENV PATH=/home/developer/.linuxbrew/bin:/home/developer/.linuxbrew/sbin:/home/developer/.local/bin:$PATH \
+  SHELL=/bin/zsh \
+  USER=developer
+
+# Install portable-ruby and tap homebrew/core.
+RUN HOMEBREW_NO_ANALYTICS=1 HOMEBREW_NO_AUTO_UPDATE=1 brew tap homebrew/core \
+&& rm -rf ~/.cache
+
+# So that all process that we start are child of dumb-init
+ENTRYPOINT [ "dumb-init", "--" ]
+CMD ["zsh", "--"]
+  
 # generate ssh keys
 RUN set -eux; \
   ssh-keygen -q -t rsa -b 4096 -C ${GIT_USER_EMAIL} -N '' -f "${HOME}/.ssh/id_rsa"; \
@@ -65,15 +90,11 @@ RUN set -eux; \
   eval "$(ssh-agent -s)"; \
   ssh-add "${HOME}/.ssh/id_rsa"
 
-# So that all process that we start are child of dumb-init
-ENTRYPOINT [ "dumb-init", "--" ]
-CMD ["zsh", "--"]
-
-
 #============ Install SAWS for awscli ============#
 # Install saws for awscli
 RUN set -eux; \
   pip install --user --upgrade saws boto3 awsebcli; \
+  brew install yq; \
   curl https://raw.githubusercontent.com/wallix/awless/master/getawless.sh | bash; \
   mv awless /usr/local/bin/; \
   echo 'source <(awless completion zsh)' >> ~/.bash_profile; \
@@ -154,6 +175,7 @@ RUN set -eux; \
   ' ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
   echo "export PATH=$PATH:\$PATH" >> ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
   echo "unset QUICKSTART_KIT_REFRESH_IN_DAYS" >> ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
+  echo "export HOMEBREW_NO_ANALYTICS=1\nHOMEBREW_NO_AUTO_UPDATE=1"  >> ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
   # symlink your local plugins
   cd "${HOME}/.dotfiles/devbox"; \
   stow --target="${HOME}" dotfiles; \
