@@ -21,6 +21,29 @@ ENV LANG=en_US.UTF-8 \
 
 LABEL AUTHOR="${GIT_USER_NAME} <${GIT_USER_EMAIL}>"
 
+
+  
+# Install Homebrew
+RUN useradd -m -s /bin/zsh developer; \
+  echo 'developer ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers;
+RUN set -eux; \
+  git clone https://github.com/Homebrew/brew /home/developer/.linuxbrew/Homebrew; \
+  cd /home/developer/.linuxbrew; \
+  mkdir -p bin etc include lib opt sbin share var/homebrew/linked Cellar; \
+  ln -s ../Homebrew/bin/brew /home/developer/.linuxbrew/bin/; \
+  chown -R developer: /home/developer/.linuxbrew; \
+  chown -R developer: /usr/local;
+
+USER developer
+WORKDIR /home/developer
+ENV PATH=/home/developer/.linuxbrew/bin:/home/developer/.linuxbrew/sbin:/home/developer/.local/bin:$PATH \
+  SHELL=/bin/zsh \
+  USER=developer
+
+# Install portable-ruby and tap homebrew/core.
+RUN HOMEBREW_NO_ANALYTICS=1 HOMEBREW_NO_AUTO_UPDATE=1 brew tap homebrew/core \
+&& rm -rf ~/.cache
+
 # Amazon default repo.list pacakges
 RUN yum update -y; \
   # Install build packages
@@ -46,26 +69,6 @@ RUN set -eux; \
   # clean yum packages
   yum clean all; \
   rm -rf /var/cache/yum;
-  
-# Install Homebrew
-RUN useradd -m -s /bin/zsh developer; \
-  echo 'developer ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers;
-RUN set -eux; \
-  git clone https://github.com/Homebrew/brew /home/developer/.linuxbrew/Homebrew; \
-  cd /home/developer/.linuxbrew; \
-  mkdir -p bin etc include lib opt sbin share var/homebrew/linked Cellar; \
-  ln -s ../Homebrew/bin/brew /home/developer/.linuxbrew/bin/; \
-  chown -R developer: /home/developer/.linuxbrew;
-
-USER developer
-WORKDIR /home/developer
-ENV PATH=/home/developer/.linuxbrew/bin:/home/developer/.linuxbrew/sbin:/home/developer/.local/bin:$PATH \
-  SHELL=/bin/zsh \
-  USER=developer
-
-# Install portable-ruby and tap homebrew/core.
-RUN HOMEBREW_NO_ANALYTICS=1 HOMEBREW_NO_AUTO_UPDATE=1 brew tap homebrew/core \
-&& rm -rf ~/.cache
 
 # So that all process that we start are child of dumb-init
 ENTRYPOINT [ "dumb-init", "--" ]
