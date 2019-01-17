@@ -21,29 +21,6 @@ ENV LANG=en_US.UTF-8 \
 
 LABEL AUTHOR="${GIT_USER_NAME} <${GIT_USER_EMAIL}>"
 
-
-  
-# Install Homebrew
-RUN useradd -m -s /bin/zsh developer; \
-  echo 'developer ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers;
-RUN set -eux; \
-  git clone https://github.com/Homebrew/brew /home/developer/.linuxbrew/Homebrew; \
-  cd /home/developer/.linuxbrew; \
-  mkdir -p bin etc include lib opt sbin share var/homebrew/linked Cellar; \
-  ln -s ../Homebrew/bin/brew /home/developer/.linuxbrew/bin/; \
-  chown -R developer: /home/developer/.linuxbrew; \
-  chown -R developer: /usr/local;
-
-USER developer
-WORKDIR /home/developer
-ENV PATH=/home/developer/.linuxbrew/bin:/home/developer/.linuxbrew/sbin:/home/developer/.local/bin:$PATH \
-  SHELL=/bin/zsh \
-  USER=developer
-
-# Install portable-ruby and tap homebrew/core.
-RUN HOMEBREW_NO_ANALYTICS=1 HOMEBREW_NO_AUTO_UPDATE=1 brew tap homebrew/core \
-&& rm -rf ~/.cache
-
 # Amazon default repo.list pacakges
 RUN yum update -y; \
   # Install build packages
@@ -88,7 +65,6 @@ RUN set -eux; \
 # Install saws for awscli
 RUN set -eux; \
   pip install --user --upgrade saws boto3 awsebcli; \
-  brew install yq; \
   curl https://raw.githubusercontent.com/wallix/awless/master/getawless.sh | bash; \
   mv awless /usr/local/bin/; \
   echo 'source <(awless completion zsh)' >> ~/.bash_profile; \
@@ -112,6 +88,7 @@ RUN set -eux; \
 
 #============ Install Golang ============#
 ENV GOPATH=${GOPATH:-/go}
+ENV PATH=${GOPATH}/bin:$PATH
 RUN set -eux; \
   mkdir -p ${GOPATH}; \
   chmod -R 777 ${GOPATH}; \
@@ -201,3 +178,39 @@ RUN set -eux; \
   yum clean all; \
   rm -rf /var/cache/yum;
 #============ ./Install Spacevim ==========#
+
+#============ Install yq ============#
+RUN set -eux; \
+  go get gopkg.in/mikefarah/yq.v2; \
+  echo "alias yq='yq.v2'" >> ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
+  echo "";
+#============ ./Install yq ============#
+
+# #============ Install Linuxbrew ============#
+# # Install Homebrew
+# RUN groupadd --gid 1000 developer; \
+#   useradd --uid 1000 --gid developer --shell /bin/zsh --create-home developer; \
+#   echo 'developer ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers;
+# 
+# USER developer
+# WORKDIR /home/developer
+# ENV PATH=/home/developer/.linuxbrew/bin:/home/developer/.linuxbrew/sbin:/home/developer/.local/bin:$PATH \
+#   SHELL=/bin/zsh \
+#   USER=developer
+# 
+# RUN set -eux; \
+#   git clone https://github.com/Homebrew/brew /home/developer/.linuxbrew/Homebrew; \
+#   cd /home/developer/.linuxbrew; \
+#   mkdir -p bin etc include lib opt sbin share var/homebrew/linked Cellar; \
+#   ln -s ../Homebrew/bin/brew /home/developer/.linuxbrew/bin/; \
+#   # chown -R developer: /home/developer/.linuxbrew; \
+#   # chown -R developer: /usr/local; \
+#   # chown -R developer: /var; \
+#   echo "";
+# 
+# 
+# # Install portable-ruby and tap homebrew/core.
+# RUN HOMEBREW_NO_ANALYTICS=1 HOMEBREW_NO_AUTO_UPDATE=1 brew tap homebrew/core \
+# && rm -rf ~/.cache
+# #============ ./Install Linuxbrew ============#
+# 
