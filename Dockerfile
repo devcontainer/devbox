@@ -50,7 +50,7 @@ RUN set -eux; \
 # Install Homebrew
 RUN useradd -m -s /bin/zsh developer; \
   echo 'developer ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers;
-RUN set -eux;
+RUN set -eux; \
   git clone https://github.com/Homebrew/brew /home/developer/.linuxbrew/Homebrew; \
   cd /home/developer/.linuxbrew; \
   mkdir -p bin etc include lib opt sbin share var/homebrew/linked Cellar; \
