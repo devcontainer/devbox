@@ -183,7 +183,7 @@ RUN set -eux; \
 #============ Install yq ============#
 RUN set -eux; \
   go get gopkg.in/mikefarah/yq.v2; \
-  echo "alias yq='yq.v2'" >> ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
+  ln -s ${GOPATH}/bin/yq.v2 ${GOPATH}/bin/yq; \
   echo "";
 #============ ./Install yq ============#
 
