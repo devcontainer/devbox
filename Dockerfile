@@ -1,4 +1,4 @@
-FROM amazonlinux:2 as build
+FROM amazonlinux as build
 ARG GIT_USER_NAME
 ARG GIT_USER_EMAIL
 ARG HTTP_PROXY
