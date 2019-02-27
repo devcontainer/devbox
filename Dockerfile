@@ -64,7 +64,7 @@ RUN set -eux; \
 #============ Install SAWS for awscli ============#
 # Install saws for awscli
 RUN set -eux; \
-  pip install --user --upgrade saws boto3 awsebcli; \
+  pip install --upgrade --ignore-installed awscli saws boto3 awsebcli; \
   curl https://raw.githubusercontent.com/wallix/awless/master/getawless.sh | bash; \
   mv awless /usr/local/bin/; \
   echo 'source <(awless completion zsh)' >> ~/.bash_profile; \
@@ -143,10 +143,11 @@ RUN set -eux; \
   export fpath=(/usr/local/share/zsh-completions $fpath)\n\
   # load zgen\n\
   source "${HOME}/zgen/zgen.zsh"\n\
-  ' ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
-  echo "export PATH=$PATH:\$PATH" >> ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
-  echo "unset QUICKSTART_KIT_REFRESH_IN_DAYS" >> ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
-  echo "export HOMEBREW_NO_ANALYTICS=1\nHOMEBREW_NO_AUTO_UPDATE=1"  >> ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
+  ' \
+  -e "\$a\export PATH=$PATH:\$PATH\n\
+  unset QUICKSTART_KIT_REFRESH_IN_DAYS\n\
+  export HOMEBREW_NO_ANALYTICS=1\n\
+  export HOMEBREW_NO_AUTO_UPDATE=1" ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
   # symlink your local plugins
   cd "${HOME}/.dotfiles/devbox"; \
   stow --target="${HOME}" dotfiles; \
