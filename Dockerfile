@@ -64,7 +64,9 @@ RUN set -eux; \
 #============ Install SAWS for awscli ============#
 # Install saws for awscli
 RUN set -eux; \
-  pip install --upgrade --ignore-installed awscli saws boto3 awsebcli; \
+  pip install --upgrade --ignore-installed saws; \
+  pip install --upgrade --ignore-installed boto3; \
+  pip install --upgrade --ignore-installed awsebcli; \
   curl https://raw.githubusercontent.com/wallix/awless/master/getawless.sh | bash; \
   mv awless /usr/local/bin/; \
   echo 'source <(awless completion zsh)' >> ~/.bash_profile; \
