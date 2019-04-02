@@ -5,7 +5,7 @@ function set_proxy() {
     if [ $# -gt 0 ]; then
       PROXY+=($@);
     fi;
-    PROXY+=("http://PITC-Zscaler-ASPAC-Bangalore3PR.proxy.corporate.ge.com:80" "http://sjc1intproxy01.crd.ge.com:8080" "http://proxy-src.research.ge.com:8080")
+    PROXY+=("http://sjc1intproxy01.crd.ge.com:8080" "http://PITC-Zscaler-ASPAC-Bangalore3PR.proxy.corporate.ge.com:80" "http://proxy-src.research.ge.com:8080")
     for ix in ${PROXY}; do
       # sed regex provides protocol,user,password,host,port
       local hostport=$(echo "${ix}" | sed -e 's/^\(\([^/]\+\):\/\/\)\?\(\([^@:]\+\)\(:\([^@]\+\)\)\?@\)\?\(\([^\/]\+\)\(:[0-9]\+\)\)\/\?.*$/\2,\4,\6,\8\9/g' | tr ':' ','| awk -F',' '{print $4" "$5 }' )
