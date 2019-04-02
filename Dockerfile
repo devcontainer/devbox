@@ -141,7 +141,8 @@ RUN set -eux; \
   fi;\n\
   [ -f ~/.bash_profile ] && source ~/.bash_profile;\n\
   [ -f ~/.bash_extras ] && source ~/.bash_extras;\n\
-  [ -f ~/.bashrc ] && source ~/.bashrc;\n\
+  # bashrc may include bash specific commands which zsh may not support, hence not included\n\
+  # [ -f ~/.bashrc ] && source ~/.bashrc;\n\
   export fpath=(/usr/local/share/zsh-completions $fpath)\n\
   # load zgen\n\
   source "${HOME}/zgen/zgen.zsh"\n\
