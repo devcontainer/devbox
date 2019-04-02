@@ -26,7 +26,7 @@ RUN yum update -y; \
   # Install build packages
   yum install -y fontconfig mkfontdir; \
   # Install required packages
-  yum install -y python-pip python3-pip wget git openssl tree zsh nc ca-certificates; \
+  yum install -y python-pip python3-pip wget git openssl tree zsh nc ca-certificates perl make automake gcc gmp-devel libffi zlib xz tar gnupg; \
   update-ca-trust force-enable; \
   amazon-linux-extras install -y docker; \
   # Install dumb-init
