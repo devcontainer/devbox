@@ -133,21 +133,23 @@ RUN set -eux; \
   sed -i -e '/alias grep/d' ./zsh/.zsh_aliases; \
   stow --target="${HOME}" zsh; \
   cd ${HOME}; \
+  git clone --depth 1 https://github.com/junegunn/fzf.git ${HOME}/.fzf; \
+  ${HOME}/.fzf/install --all; \
   sed -i -e '1i\
   if type ssh-agent> /dev/null 2>&1; then\n\
   eval $(ssh-agent -s);\n\
   fi;\n\
   [ -f ~/.bash_profile ] && source ~/.bash_profile;\n\
   [ -f ~/.bash_extras ] && source ~/.bash_extras;\n\
-  [ -f ~/.bashrc ] && source ~/.basrc;\n\
+  [ -f ~/.bashrc ] && source ~/.bashrc;\n\
   export fpath=(/usr/local/share/zsh-completions $fpath)\n\
   # load zgen\n\
   source "${HOME}/zgen/zgen.zsh"\n\
   ' \
-  -e "\$a\export PATH=$PATH:\$PATH\n\
-  unset QUICKSTART_KIT_REFRESH_IN_DAYS\n\
-  export HOMEBREW_NO_ANALYTICS=1\n\
-  export HOMEBREW_NO_AUTO_UPDATE=1" ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
+  -e "\$a\export PATH=$PATH:\$PATH;\n\
+  unset QUICKSTART_KIT_REFRESH_IN_DAYS;\n\
+  export HOMEBREW_NO_ANALYTICS=1;\n\
+  export HOMEBREW_NO_AUTO_UPDATE=1;" ${HOME}/.dotfiles/zsh-quickstart-kit/zsh/.zshrc; \
   # symlink your local plugins
   cd "${HOME}/.dotfiles/devbox"; \
   stow --target="${HOME}" dotfiles; \
