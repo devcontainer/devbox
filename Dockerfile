@@ -189,6 +189,12 @@ RUN set -eux; \
   echo "";
 #============ ./Install yq ============#
 
+#============ Install Haskell ============#
+RUN set -eux; \
+  curl -sSL https://get.haskellstack.org/ | sh -s - -f; \
+  echo "";
+#============ ./Install Haskell ============#
+
 # #============ Install Linuxbrew ============#
 # # Install Homebrew
 # RUN groupadd --gid 1000 developer; \
