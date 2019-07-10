@@ -143,6 +143,7 @@ RUN set -eux; \
   [ -f ~/.bash_extras ] && source ~/.bash_extras;\n\
   # bashrc may include bash specific commands which zsh may not support, hence not included\n\
   # [ -f ~/.bashrc ] && source ~/.bashrc;\n\
+  DISABLE_UPDATE_PROMPT=true\n\
   export fpath=(/usr/local/share/zsh-completions $fpath)\n\
   # load zgen\n\
   source "${HOME}/zgen/zgen.zsh"\n\
