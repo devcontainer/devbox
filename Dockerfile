@@ -87,7 +87,7 @@ RUN set -eux; \
 
 
 #============ Install Golang ============#
-ENV GOPATH=${GOPATH:-/go}
+ENV GOPATH=${GOPATH:-/root/go}
 ENV PATH=${GOPATH}/bin:$PATH
 RUN set -eux; \
   mkdir -p ${GOPATH}; \
